@@ -19,7 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Load environment variables
-load_dotenv(dotenv_path="../.env")
+load_dotenv(dotenv_path="/app/.env")
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -27,7 +27,7 @@ app.config['SECRET_KEY'] = 'fraud-detection-dashboard-secret'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # Load configuration
-with open('../config.yaml', 'r') as f:
+with open('/app/config.yaml', 'r') as f:
     config = yaml.safe_load(f)
 
 # Store recent transactions (last 100)

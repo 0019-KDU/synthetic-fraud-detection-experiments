@@ -20,13 +20,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Load environment variables
-load_dotenv(dotenv_path="../.env")
+load_dotenv(dotenv_path="/app/.env")
 
 
 class FraudNotificationService:
     def __init__(self):
         # Load configuration
-        with open('../config.yaml', 'r') as f:
+        with open('/app/config.yaml', 'r') as f:
             self.config = yaml.safe_load(f)
         
         # Kafka configuration
