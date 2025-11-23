@@ -45,7 +45,7 @@ fraud_stats = {
 bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 kafka_username = os.getenv("KAFKA_USERNAME")
 kafka_password = os.getenv("KAFKA_PASSWORD")
-topic = config['kafka']['output_topic']  # fraud_predictions
+topic = config['kafka']['output_topic']  # fraud_predictions - transactions with predictions
 
 consumer_config = {
     "bootstrap.servers": bootstrap_servers,
