@@ -1,0 +1,6 @@
+flask
+flask-socketio
+confluent_kafka
+python-dotenv
+pyyaml
+eventlet

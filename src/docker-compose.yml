@@ -348,6 +348,46 @@ services:
     networks:
       - fraud-detection
 
+  # MAILDEV - Email Testing Server
+  maildev:
+    image: maildev/maildev
+    container_name: maildev
+    ports:
+      - "1080:1080" # Web UI
+      - "1025:1025" # SMTP server
+    networks:
+      - fraud-detection
+
+  # NOTIFICATION SERVICE
+  notification:
+    build: ./notification
+    container_name: fraud-notification
+    env_file: .env
+    environment:
+      - MAILDEV_HOST=maildev
+      - MAILDEV_SMTP_PORT=1025
+      - FROM_EMAIL=fraud-alert@frauddetection.com
+    depends_on:
+      - maildev
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./.env:/app/.env
+    networks:
+      - fraud-detection
+
+  # FRAUD DETECTION DASHBOARD
+  dashboard:
+    build: ./dashboard
+    container_name: fraud-dashboard
+    env_file: .env
+    ports:
+      - "5000:5000" # Dashboard Web UI
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./.env:/app/.env
+    networks:
+      - fraud-detection
+
 volumes:
   postgres-db-volume:
   minio_data:
