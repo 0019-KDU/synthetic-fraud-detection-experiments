@@ -21,7 +21,7 @@ from pyspark.sql.functions import (from_json, col, hour, dayofmonth,
                                   dayofweek, when, lit, coalesce)
 from pyspark.sql.pandas.functions import pandas_udf  # For Pandas vectorized UDFs
 from pyspark.sql.types import (StructType, StructField, StringType,
-                              IntegerType, DoubleType, TimestampType)
+                              IntegerType, DoubleType, TimestampType, FloatType)
 
 # Configure logging to track pipeline operations and errors
 logging.basicConfig(
@@ -261,7 +261,10 @@ class FraudDetectionInference:
         broadcast_model = self.broadcast_model
 
         # Define prediction UDF using Pandas for vectorized operations
-        @pandas_udf("int")
+        @pandas_udf(StructType([
+            StructField("prediction", IntegerType(), False),
+            StructField("fraud_probability", FloatType(), False)
+        ]))
         def predict_udf(
                 user_id: pd.Series,
                 amount: pd.Series,
@@ -275,14 +278,14 @@ class FraudDetectionInference:
                 transaction_day: pd.Series,
                 user_activity_24h: pd.Series,
                 merchant: pd.Series
-        ) -> pd.Series:
+        ) -> pd.DataFrame:
             """Vectorized UDF for batch prediction using pre-trained model
 
             Args:
                 Various Pandas Series containing feature values
 
             Returns:
-                pd.Series: Binary predictions (0=legitimate, 1=fraud)
+                pd.DataFrame: DataFrame with prediction and fraud_probability columns
             """
             # Create input DataFrame from feature columns
             input_df = pd.DataFrame({
@@ -304,10 +307,15 @@ class FraudDetectionInference:
             probabilities = broadcast_model.value.predict_proba(input_df)[:, 1]
             threshold = 0.60  # Tuned based on precision/recall requirements
             predictions = (probabilities >= threshold).astype(int)
-            return pd.Series(predictions)
+            
+            # Return both prediction and probability
+            return pd.DataFrame({
+                'prediction': predictions,
+                'fraud_probability': probabilities
+            })
 
         # Apply predictions to streaming DataFrame
-        prediction_df = feature_df.withColumn("prediction", predict_udf(
+        prediction_result = feature_df.withColumn("result", predict_udf(
             *[col(f) for f in [
                 "user_id", "amount", "currency", "transaction_hour",
                 "is_weekend", "time_since_last_txn", "merchant_risk",
@@ -315,9 +323,15 @@ class FraudDetectionInference:
                 "user_activity_24h", "merchant"
             ]]
         ))
+        
+        # Extract prediction and fraud_probability from result struct
+        prediction_df = prediction_result \
+            .withColumn("prediction", col("result.prediction")) \
+            .withColumn("fraud_probability", col("result.fraud_probability")) \
+            .drop("result")
 
-        # Filter to only include high-confidence fraud predictions
-        fraud_predictions = prediction_df.filter(col("prediction") == 1)
+        # Write ALL predictions (both fraud and legitimate) to Kafka
+        fraud_predictions = prediction_df
 
         # Write results back to Kafka topic
         (fraud_predictions.selectExpr(
