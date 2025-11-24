@@ -392,7 +392,7 @@ services:
   payment-api:
     build: ./producer
     container_name: payment-api
-    command: python payment_api.py
+    entrypoint: ["python3", "payment_api.py"]
     env_file: .env
     ports:
       - "5001:5001" # Payment API
