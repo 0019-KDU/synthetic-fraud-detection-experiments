@@ -109,7 +109,7 @@ class TransactionProducer:
     def generate_transaction(self) -> Optional[Dict[str, Any]]:
         """Generate transaction with 1-2% fraud rate using realistic patterns"""
         transaction = {
-            "transaction_id": fake.uuid4(),
+            "transaction_id": str(randint(3663586, 4170239)),
             "user_id": randint(1000, 9999),
             "amount": round(fake.pyfloat(min_value=0.01, max_value=10000), 2),  # Reduced max to $10k
             "currency": "USD",

@@ -401,7 +401,7 @@
 
                 return `
                     <tr class="transaction-row ${isNew ? 'new' : ''}">
-                        <td><code>${tx.transaction_id ? tx.transaction_id.substring(0, 8) + '...' : 'N/A'}</code></td>
+                        <td><code>${tx.transaction_id || 'N/A'}</code></td>
                         <td>${tx.user_id || 'N/A'}</td>
                         <td><strong>${tx.currency || 'USD'} ${(tx.amount || 0).toFixed(2)}</strong></td>
                         <td>${tx.merchant || 'Unknown'}</td>
