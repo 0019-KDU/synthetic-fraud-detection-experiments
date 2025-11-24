@@ -158,8 +158,8 @@ def process_payment():
         
         logger.info(f"Transaction sent to Kafka: {transaction_id}")
         
-        # Wait for prediction result (timeout 10 seconds)
-        prediction_result = wait_for_prediction(transaction_id, timeout=10)
+        # Wait for prediction result (timeout 30 seconds for Spark processing)
+        prediction_result = wait_for_prediction(transaction_id, timeout=30)
         
         if prediction_result:
             is_fraud = prediction_result.get("prediction", 0)
