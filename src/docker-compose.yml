@@ -388,6 +388,22 @@ services:
     networks:
       - fraud-detection
 
+  # PAYMENT API ENDPOINT
+  payment-api:
+    build: ./producer
+    container_name: payment-api
+    command: python payment_api.py
+    env_file: .env
+    ports:
+      - "5001:5001" # Payment API
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./.env:/app/.env
+    networks:
+      - fraud-detection
+    depends_on:
+      - inference
+
 volumes:
   postgres-db-volume:
   minio_data:

@@ -2,3 +2,5 @@ python-dotenv
 faker
 jsonschema
 confluent_kafka
+flask
+requests
